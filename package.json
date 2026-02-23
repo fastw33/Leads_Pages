@@ -1,0 +1,33 @@
+{
+  "name": "financiera",
+  "version": "0.1.0",
+  "description": "Backend Tareas y Proyectos",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon --watch src --ext js,json --exec node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^8.0.1",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "pino-pretty": "^13.1.2"
+  }
+}
