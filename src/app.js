@@ -11,6 +11,7 @@ import { buildCors } from './config/corsOptions.js'
 
 // ✅ SOLO UNA VEZ
 import leadsRoutes from './modules/leads/lead.routes.js'
+import leadsAdminRoutes from './modules/leads/lead.admin.routes.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -30,8 +31,8 @@ export function createApp() {
   // ✅ RUTA PUBLICA (API KEY) - NO JWT
   app.use(`${API_PREFIX}/public/leads`, leadsRoutes)
 
-  // ✅ TODO LO ADMIN VA CON JWT (si luego creas rutas admin)
-  app.use(`${API_PREFIX}/admin`, authMiddleware)
+  // ✅ CRM de leads con JWT
+  app.use(`${API_PREFIX}/admin/leads`, authMiddleware, leadsAdminRoutes)
 
   app.use(notFound)
   app.use(errorHandler)
