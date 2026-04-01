@@ -726,8 +726,16 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
     }
   }
 
+    const agendaWasCleared = Boolean(
+      touchedAgendaFields &&
+        hadPendingAgenda &&
+        !cleanText(lead?.crm?.nextStep) &&
+        !lead?.crm?.nextStepAt &&
+        !lead?.crm?.followUpAt
+    )
+
   if (nextStatus && nextStatus !== currentStatus) {
-    if (hadPendingAgenda) {
+      if (hadPendingAgenda && !agendaWasCleared) {
       const err = new Error(
         'No puedes cambiar el estado porque este lead tiene gestion pendiente en agenda. Primero marca "gestionado" en Agenda.'
       )
