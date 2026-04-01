@@ -706,8 +706,15 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
       nextStepAtNow !== hadNextStepAtBefore ||
       followUpAtNow !== hadFollowUpAtBefore
 
-    if (agendaChanged && !note) {
-      if (nextStepNow || nextStepAtNow || followUpAtNow) {
+    if (agendaChanged) {
+      // Si se LIMPIAN los campos (de tener valores a estar vacíos)
+      if (hadNextStepBefore || hadNextStepAtBefore || hadFollowUpAtBefore) {
+        if (!nextStepNow && !nextStepAtNow && !followUpAtNow) {
+          autoAgendaHistoryNote = 'Gestión de agenda completada'
+        }
+      }
+      // Si se CREAN o MODIFICAN los campos (y no hay nota enviada)
+      else if (!note && (nextStepNow || nextStepAtNow || followUpAtNow)) {
         const dateLabel = lead?.crm?.nextStepAt || lead?.crm?.followUpAt
         autoAgendaHistoryNote = [
           `Se agendo seguimiento: ${nextStepNow || 'Sin detalle'}`,
@@ -737,7 +744,8 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
     })
     lead.crm.status = nextStatus
     lead.crm.statusChangedAt = new Date()
-  } else if (note) {
+  } else if (note && !autoAgendaHistoryNote) {
+    // Agregar nota solo si no hay autoAgendaHistoryNote (evitar duplicado)
     lead.crm.statusHistory.push({
       from: currentStatus,
       to: currentStatus,
@@ -755,6 +763,20 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
       from: statusForHistory,
       to: statusForHistory,
       note: autoAgendaHistoryNote,
+      changedBy: actor,
+      changedAt: new Date(),
+    })
+  }
+
+  if (note && autoAgendaHistoryNote) {
+    // Si hay AMBOS (nota enviada + autoAgendaHistoryNote), agregar la nota también
+    const statusForHistory = normalizeLeadStatus(
+      lead.crm.status || currentStatus
+    )
+    lead.crm.statusHistory.push({
+      from: statusForHistory,
+      to: statusForHistory,
+      note,
       changedBy: actor,
       changedAt: new Date(),
     })
