@@ -34,6 +34,11 @@ export function createApp() {
   // ✅ CRM de leads con JWT
   app.use(`${API_PREFIX}/admin/leads`, authMiddleware, leadsAdminRoutes)
 
+  // Endpoints de diagnostico basico del servicio
+  app.get('/', (req, res) => res.status(200).send('Leads API OK'))
+  app.get('/health', (req, res) => res.status(200).send('OK'))
+  app.get('/favicon.ico', (req, res) => res.status(204).end())
+
   app.use(notFound)
   app.use(errorHandler)
 
