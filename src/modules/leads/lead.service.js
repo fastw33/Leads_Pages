@@ -7,15 +7,23 @@ import { buildLeadEmailHtml } from '../notifications/leadEmailTemplate.js'
 const LEAD_STATUS = [
   'new',
   'contacted',
-  'qualified',
-  'appointment',
-  'unqualified',
-  'no_response',
-  'proposal',
-  'won',
-  'lost',
-  'spam',
+  'visit_scheduled',
+  'visit_done',
+  'quote_sent',
+  'follow_up',
+  'closed',
 ]
+
+const LEAD_STATUS_ALIASES = {
+  qualified: 'visit_scheduled',
+  appointment: 'visit_scheduled',
+  proposal: 'quote_sent',
+  no_response: 'follow_up',
+  won: 'closed',
+  lost: 'closed',
+  unqualified: 'closed',
+  spam: 'closed',
+}
 
 const LEAD_PRIORITY = ['low', 'medium', 'high']
 
@@ -44,6 +52,12 @@ function pickValue(payload, aliases) {
 function cleanText(value) {
   if (value === null || value === undefined) return ''
   return String(value).trim()
+}
+
+function normalizeLeadStatus(value) {
+  const raw = cleanText(value)
+  if (!raw) return 'new'
+  return LEAD_STATUS_ALIASES[raw] || raw
 }
 
 function inferCompanyFromText(value) {
@@ -434,8 +448,8 @@ export async function createManualLead(
     normalized.company = inferCompanyFromText(body.pageUrl)
   }
 
-  if (body.status && LEAD_STATUS.includes(cleanText(body.status))) {
-    crm.status = cleanText(body.status)
+  if (body.status && LEAD_STATUS.includes(normalizeLeadStatus(body.status))) {
+    crm.status = normalizeLeadStatus(body.status)
     crm.statusChangedAt = new Date()
     crm.statusHistory = [
       {
@@ -505,8 +519,8 @@ export async function listLeads(query = {}) {
 
   const filter = {}
 
-  if (query.status && LEAD_STATUS.includes(query.status)) {
-    filter['crm.status'] = query.status
+  if (query.status && LEAD_STATUS.includes(normalizeLeadStatus(query.status))) {
+    filter['crm.status'] = normalizeLeadStatus(query.status)
   }
 
   if (query.pageUrl) {
@@ -589,7 +603,7 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
 
   const actor = buildActor(reqUser)
   const note = cleanText(body.note)
-  const nextStatus = cleanText(body.status)
+  const nextStatus = normalizeLeadStatus(body.status)
   const hadNextStepBefore = cleanText(lead?.crm?.nextStep)
   const hadNextStepAtBefore = lead?.crm?.nextStepAt
     ? new Date(lead.crm.nextStepAt).getTime()
@@ -675,7 +689,7 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
     lead.crm.lastContactAt = lastContactAt
   }
 
-  const currentStatus = lead.crm.status || 'new'
+  const currentStatus = normalizeLeadStatus(lead.crm.status || 'new')
   let autoAgendaHistoryNote = ''
 
   if (touchedAgendaFields) {
@@ -734,7 +748,9 @@ export async function updateLeadCrmStatus(id, body = {}, reqUser = null) {
   }
 
   if (autoAgendaHistoryNote) {
-    const statusForHistory = lead.crm.status || currentStatus
+    const statusForHistory = normalizeLeadStatus(
+      lead.crm.status || currentStatus
+    )
     lead.crm.statusHistory.push({
       from: statusForHistory,
       to: statusForHistory,
