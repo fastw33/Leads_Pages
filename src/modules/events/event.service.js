@@ -1,10 +1,6 @@
 import { LeadEvent } from './event.model.js'
 
-export const EVENT_TYPES = [
-  'whatsapp_modal_open',
-  'whatsapp_contact_click',
-  'page_exit',
-]
+export const EVENT_TYPES = ['whatsapp_contact_click']
 
 const BILLABLE_EVENT_TYPES = new Set(['whatsapp_contact_click'])
 
@@ -45,8 +41,7 @@ function getIp(req) {
 }
 
 function eventCategory(eventType) {
-  if (eventType.startsWith('whatsapp_')) return 'whatsapp'
-  return 'page'
+  return 'whatsapp'
 }
 
 function normalizeEventBody(body = {}, req) {
@@ -120,7 +115,7 @@ function buildEventFilter(query = {}) {
     filter.eventType = cleanText(query.eventType)
   }
 
-  if (query.category && ['whatsapp', 'page'].includes(cleanText(query.category))) {
+  if (query.category && ['whatsapp'].includes(cleanText(query.category))) {
     filter.category = cleanText(query.category)
   }
 
@@ -228,16 +223,6 @@ export async function summarizeEvents(query = {}) {
               $cond: [{ $eq: ['$eventType', 'whatsapp_contact_click'] }, 1, 0],
             },
           },
-          modalOpens: {
-            $sum: {
-              $cond: [{ $eq: ['$eventType', 'whatsapp_modal_open'] }, 1, 0],
-            },
-          },
-          exits: {
-            $sum: {
-              $cond: [{ $eq: ['$eventType', 'page_exit'] }, 1, 0],
-            },
-          },
         },
       },
     ]),
@@ -248,8 +233,6 @@ export async function summarizeEvents(query = {}) {
       total: 0,
       billable: 0,
       whatsappClicks: 0,
-      modalOpens: 0,
-      exits: 0,
     },
     byType,
     byPage,
