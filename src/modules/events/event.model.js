@@ -28,13 +28,13 @@ const EventSchema = new mongoose.Schema(
     eventId: { type: String, trim: true, unique: true, sparse: true },
     eventType: {
       type: String,
-      enum: ['whatsapp_modal_open', 'whatsapp_contact_click', 'page_exit'],
+      enum: ['whatsapp_contact_click'],
       required: true,
       index: true,
     },
     category: {
       type: String,
-      enum: ['whatsapp', 'page'],
+      enum: ['whatsapp'],
       required: true,
       index: true,
     },
